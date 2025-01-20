@@ -1,32 +1,36 @@
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class Graph {
-    private final Map<String, Map<String, Integer>> adjacencyList;
+    private final Map<String, List<Node>> adjacencyList;
 
     public Graph() {
         this.adjacencyList = new HashMap<>();
     }
 
     public void addVertex(String vertex) {
-        adjacencyList.putIfAbsent(vertex, new HashMap<>());
+        adjacencyList.putIfAbsent(vertex, new ArrayList<>());
     }
 
-    public void addEdge(String source, String destination, int weight) {
-        adjacencyList.get(source).put(destination, weight);
-        adjacencyList.get(destination).put(source, weight);
+    public void addEdge(String from, String to, int weight) {
+        adjacencyList.get(from).add(new Node(to, weight));
+        adjacencyList.get(to).add(new Node(from, weight)); // For undirected graph
+    }
+
+    public List<Node> getNeighbors(String vertex) {
+        return adjacencyList.getOrDefault(vertex, new ArrayList<>());
     }
 
     public Set<String> getVertices() {
         return adjacencyList.keySet();
     }
 
-    public Map<String, Integer> getNeighbors(String vertex) {
-        return adjacencyList.getOrDefault(vertex, new HashMap<>());
-    }
-
     public boolean hasVertex(String vertex) {
         return adjacencyList.containsKey(vertex);
+    }
+
+    public void printGraph() {
+        for (String vertex : adjacencyList.keySet()) {
+            System.out.println(vertex + " -> " + adjacencyList.get(vertex));
+        }
     }
 }
