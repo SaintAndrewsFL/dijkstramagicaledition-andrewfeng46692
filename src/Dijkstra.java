@@ -1,4 +1,5 @@
 import java.util.*;
+import java.util.Queue;
 
 public class Dijkstra {
     private final Graph graph;
@@ -24,7 +25,7 @@ public class Dijkstra {
         // Map to store the previous vertex for path reconstruction
         Map<String, String> previous = new HashMap<>();
         // Priority queue to determine the next vertex to process
-        PriorityQueue<Node> queue = new PriorityQueue<>(Comparator.comparingInt(Node::getWeight));
+        TreeSet<Node> queue = new TreeSet<>(Comparator.comparingInt(Node::getWeight).thenComparing(Node::getName));
 
         // Initialize distances to all vertices as infinity, except for the start vertex
         for (String vertex : graph.getVertices()) {
@@ -38,7 +39,7 @@ public class Dijkstra {
 
         while (!queue.isEmpty()) {
             // Get the vertex with the smallest distance
-            Node currentNode = queue.poll();
+            Node currentNode = queue.pollFirst();
             String current = currentNode.getName();
 
             // Process each neighbor of the current vertex
@@ -47,27 +48,29 @@ public class Dijkstra {
                 if (newDist < distances.get(neighbor.getName())) {
                     distances.put(neighbor.getName(), newDist);
                     previous.put(neighbor.getName(), current);
-                    queue.add(new Node(neighbor.getName(), newDist));
+                    queue.remove(new Node(neighbor.getName(), distances.get(neighbor.getName()))); // Remove outdated entry
+                    queue.add(new Node(neighbor.getName(), newDist)); // Insert updated distance                }
                 }
+
+                // Debug: Print PriorityQueue state after processing each vertex
+                System.out.println("PriorityQueue after evaluating " + current + ": " + queue);
             }
 
-            // Debug: Print PriorityQueue state after processing each vertex
-            System.out.println("PriorityQueue after evaluating " + current + ": " + queue);
-        }
+            // If the target vertex was not reached
+            if (!previous.containsKey(target)) {
+                return "No path exists between " + start + " and " + target;
+            }
 
-        // If the target vertex was not reached
-        if (!previous.containsKey(target)) {
-            return "No path exists between " + start + " and " + target;
-        }
+            // Reconstruct the path by backtracking from the target
+            List<String> path = new ArrayList<>();
+            for (String at = target; at != null; at = previous.get(at)) {
+                path.add(at);
+            }
+            Collections.reverse(path);
 
-        // Reconstruct the path by backtracking from the target
-        List<String> path = new ArrayList<>();
-        for (String at = target; at != null; at = previous.get(at)) {
-            path.add(at);
+            // Return the final path and total cost
+            return "Path (" + distances.get(target) + "): " + String.join(" -> ", path);
         }
-        Collections.reverse(path);
-
-        // Return the final path and total cost
-        return "Path (" + distances.get(target) + "): " + String.join(" -> ", path);
+        return null;
     }
 }
